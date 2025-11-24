@@ -20,6 +20,14 @@ st.markdown("""
     /* ← LIGNE MAGIQUE POUR LE CERCLE BLANC COCHÉ */
     .stRadio > div[role="radiogroup"] > label > div:first-child[data-checked="true"]::after {
         background-color: white !important;
+            
+    /* Radio button coché → cercle blanc (force vraiment) */
+    .stRadio [data-baseweb="radio"] [data-checked="true"] > div:first-child::after {
+    background-color: white !important;
+    }
+    .stRadio [data-baseweb="radio"] [data-checked="true"] > div:first-child {
+    border-color: white !important;
+    }
     }
 </style>
 """, unsafe_allow_html=True)
