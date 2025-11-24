@@ -16,6 +16,11 @@ st.markdown("""
     .success-box {background-color: #1b5b00; color: white; padding: 1.6rem; border-radius: 16px; text-align: center; font-size: 1.7em; font-weight: bold;}
     .warning-box {background-color: #e65100; color: white; padding: 1.6rem; border-radius: 16px; text-align: center; font-size: 1.7em; font-weight: bold;}
     .danger-box {background-color: #c62828; color: white; padding: 1.6rem; border-radius: 16px; text-align: center; font-size: 1.7em; font-weight: bold;}
+
+    /* ← LIGNE MAGIQUE POUR LE CERCLE BLANC COCHÉ */
+    .stRadio > div[role="radiogroup"] > label > div:first-child[data-checked="true"]::after {
+        background-color: white !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
