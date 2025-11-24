@@ -26,7 +26,7 @@ st.markdown("""
 
 st.markdown("""
 <h1 style="text-align: center; color: #ffffff; font-size: 3.2em; margin-bottom: 0;">
-    Trajets Verts Paris (Bicycle)(Tree)(Bicycle)(Tree)(Bicycle)(Tree)(Bicycle)
+    Trajets Verts Paris 🚴‍♂️🌳🚲🌳🚴‍♂️🌳🚲
 </h1>
 """, unsafe_allow_html=True)
 
