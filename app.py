@@ -22,7 +22,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align:center;color:white;font-size:3.2em;margin:0;'>Trajets Verts Paris (Bicycle)(Tree)(Bicycle)(Tree)(Bicycle)(Tree)(Bicycle)</h1>", True)
+st.markdown("<h1 style='text-align:center;color:white;font-size:3.2em;margin:0;'>Trajets Verts Paris 🚴‍♂️🌳🚲🌳🚴‍♂️🌳🚲</h1>", True)
 
 # ==================== SECRETS ====================
 token_aqi = st.secrets["token_aqi"]
@@ -45,13 +45,13 @@ def load_model():
     return LinearRegression().fit(X, df["score"])
 model = load_model()
 
-# ==================== GÉOCODEUR STABLE (NOMINATIM) ====================
+# ==================== GÉOCODEUR STABLE ====================
 @st.cache_resource
 def get_geo():
     return Nominatim(user_agent="trajets_verts_paris_2025", timeout=10)
 geo = get_geo()
 
-LIEUX = ["Bastille","République","Nation","Daumesnil","Montmartre","Tour Eiffel","Louvre","Châtelet","Gare du Nord","Gare de Lyon","Opéra","Invalides","Trocadéro","Saint-Michel","Odéon","Les Halles","Porte d'Orléans","Denfert-Rochereau","Buttes-Chaumont","Sacré-Coeur","Pigalle","Concorde","Champs-Élysées", "Place Vendôme","Place de la Bastille","Place de la République","Place de la Nation","Place de la Concorde","Jardin du Luxembourg","Parc des Buttes-Chaumont","Canal Saint-Martin","Bois de Vincennes","Bois de Boulogne","Parc Monceau","Parc de la Villette","Parc André Citroën", "Parc des Buttes-Chaumont","Place de Clichy","Place d'Italie","Place des Vosges","Place du Tertre","Place Pigalle","Île de la Cité","Île Saint-Louis","Pont Neuf","Pont Alexandre III","Pont de l'Alma","Rue de Rivoli","Avenue des Champs-Élysées","Boulevard Haussmann","Boulevard Saint-Michel","Rue Mouffetard","Rue de la Paix","Rue du Faubourg Saint-Antoine", "Oberkampf","Belleville","Ménilmontant","La Villette","Gare Saint-Lazare","Gare Montparnasse","Gare d'Austerlitz","Place de la Madeleine","Place de l'Opéra","Place de la Nation","Place de la Bastille","Place de la Concorde","Place Vendôme"]
+LIEUX = ["Bastille","République","Nation","Daumesnil","Montmartre","Tour Eiffel","Louvre","Châtelet","Gare du Nord","Gare de Lyon","Opéra","Invalides","Trocadéro","Saint-Michel","Odéon","Les Halles","Porte d'Orléans","Denfert-Rochereau","Buttes-Chaumont","Sacré-Coeur","Pigalle","Concorde","Champs-Élysées"]
 
 def find_place(q):
     q = q.strip().title()
@@ -75,7 +75,7 @@ if st.button("Prédire Route Verte", type="primary", use_container_width=True):
         p1, n1 = find_place(depart)
         p2, n2 = find_place(arrivee)
         if not p1 or not p2:
-            st.error("Lieu non trouvé – essaie un nom de la liste (Bastille, Tour Eiffel, République…) ")
+            st.error("Lieu non trouvé – essaie Bastille, Tour Eiffel, République, Montmartre…")
         else:
             url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={p1[0]},{p1[1]}&destinations={p2[0]},{p2[1]}&mode={gmode}&key={google_key}"
             r = requests.get(url, timeout=15).json()
@@ -86,6 +86,8 @@ if st.button("Prédire Route Verte", type="primary", use_container_width=True):
                 score = round((km/10)*(1-model.predict(np.array([[live_no2, live_pm25]]))[0]), 3)
 
                 st.markdown(f"<div class='success-box'>Trouvé ! {n1} → {n2}</div>", True)
+
+                # === AQI avec vraie feuille ===
                 if live_aqi <= 50:
                     st.markdown(f"<div class='success-box'>Leaf AQI Paris : <strong>{live_aqi}</strong> → Air très bon</div>", True)
                 elif live_aqi <= 100:
@@ -93,18 +95,22 @@ if st.button("Prédire Route Verte", type="primary", use_container_width=True):
                 else:
                     st.markdown(f"<div class='danger-box'>Pollution AQI Paris : <strong>{live_aqi}</strong> → Air mauvais</div>", True)
 
+                # === GREEN SCORE avec vraie feuille ===
                 if score < 0.4:
-                    st.markdown(f"<div class='success-box'>Leaf Green Score : <strong>{score}</strong> → Excellent !</div>", True)
+                    st.markdown(f"<div class='success-box'>Leaf Green Score : <strong>{score}</strong> → Air excellent – fonce !</div>", True)
                 elif score <= 0.7:
-                    st.markdown(f"<div class='warning-box'>Face neutral Green Score : <strong>{score}</strong> → Moyen</div>", True)
+                    st.markdown(f"<div class='warning-box'>Face neutral Green Score : <strong>{score}</strong> → Air moyen – surveille</div>", True)
                 else:
-                    st.markdown(f"<div class='danger-box'>Pollution Green Score : <strong>{score}</strong> → Pollué</div>", True)
+                    st.markdown(f"<div class='danger-box'>Pollution Green Score : <strong>{score}</strong> → Air pollué – évite !</div>", True)
 
+                # === Métriques + BAR CHART (de retour !) ===
                 ca, cb = st.columns(2)
                 ca.metric("Distance", f"{km} km")
-                cb.metric("Temps", f"{mins} min")
+                cb.metric("Temps estimé", f"{mins} min")
+
+                st.bar_chart({"AQI Paris": [live_aqi], "Green Score ×100": [score*100]}, height=320)
             else:
-                st.error("Pas de trajet")
+                st.error("Google n’a pas pu calculer le trajet")
 
 # ==================== FOOTER ====================
 st.divider()
