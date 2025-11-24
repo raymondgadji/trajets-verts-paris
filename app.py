@@ -136,7 +136,7 @@ if st.button("Prédire Route Verte", type="primary", use_container_width=True):
 st.divider()
 st.markdown("""
 <div style='text-align:center; color:#ffffff; font-size:1.1em; padding:20px;'>
-    © 2025 <strong>Trajets Verts Paris</strong> – Créé par <strong>Raymond Gadji</strong>(AI_Y) Artificial Intelligence  Yedidia<br>
+    © 2025 <strong>Trajets Verts Paris</strong> – Créé par <strong>Raymond Gadji</strong> (AI_Y) Artificial Intelligence  Yedidia<br>
     Données : waqi.info • Google Maps • OpenStreetMap • Airparif
 </div>
 """, unsafe_allow_html=True)
