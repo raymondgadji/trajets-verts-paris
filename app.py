@@ -18,7 +18,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align:center;color:white;font-size:3.2em;margin:0;'>Trajets Verts Paris (Bicycle)(Tree)(Bicycle)(Tree)(Bicycle)(Tree)(Bicycle)</h1>", True)
+st.markdown("<h1 style='text-align:center;color:white;font-size:3.2em;margin:0;'>Trajets Verts Paris 🚴‍♂️🌳🚲🌳🚴‍♂️🌳🚲</h1>", True)
 
 token_aqi = st.secrets["token_aqi"]
 google_key = st.secrets["google_key"]
