@@ -75,68 +75,58 @@ if st.button("Prédire Route Verte", type="primary", use_container_width=True):
             st.error("Lieu non trouvé – utilise un nom connu : Bastille, Tour Eiffel, Montmartre, République…")
         else:
             url = f"https://maps.googleapis.com/maps/api/distancematrix/json?origins={p1[0]},{p1[1]}&destinations={p2[0]},{p2[1]}&mode={gmode}&key={google_key}"
-            r = requests.get(url, timeout=15).json()
-            el = r["rows"][0]["elements"][0]
-            
-            if el["status"] == "OK":
-                km = round(el["distance"]["value"]/1000, 2)
-                mins = round(el["duration"]["value"]/60, 1)
-                score = round((km/10)*(1-model.predict(np.array([[live_no2, live_pm25]]))[0]), 3)
-
-                st.markdown(f"<div class='success-box'>Trouvé ! {n1} → {n2}</div>", True)
-
-                # ——— AQI ———
-                if live_aqi <= 50:
-                    st.markdown(f"<div class='success-box'>Leaf AQI Paris : <strong>{live_aqi}</strong> → Air très bon</div>", True)
-                elif live_aqi <= 100:
-                    st.markdown(f"<div class='warning-box'>Face neutral AQI Paris : <strong>{live_aqi}</strong> → Air modéré</div>", True)
+            try:
+                r = requests.get(url, timeout=15).json()
+                
+                # Vérifications robustes pour éviter l'IndexError
+                if r.get("status") != "OK":
+                    st.error(f"Google Maps erreur : {r.get('status', 'inconnue')}")
+                elif "rows" not in r or not r["rows"]:
+                    st.error("Google n'a pas renvoyé de résultat (lieux trop éloignés ou non routables ?)")
+                elif "elements" not in r["rows"][0] or not r["rows"][0]["elements"]:
+                    st.error("Pas d'éléments de trajet trouvés")
                 else:
-                    st.markdown(f"<div class='danger-box'>Pollution AQI Paris : <strong>{live_aqi}</strong> → Air mauvais</div>", True)
+                    el = r["rows"][0]["elements"][0]
+                    if el.get("status") != "OK":
+                        st.error(f"Trajet non calculable : {el.get('status')}")
+                    else:
+                        km = round(el["distance"]["value"]/1000, 2)
+                        mins = round(el["duration"]["value"]/60, 1)
+                        pred = model.predict(np.array([[live_no2, live_pm25]]))[0]
+                        score = round((km/10)*(1-pred), 3)
 
-                # ——— GREEN SCORE ———
-                if score < 0.4:
-                    st.markdown(f"<div class='success-box'>Leaf Green Score : <strong>{score}</strong> → Air excellent – fonce !</div>", True)
-                elif score <= 0.7:
-                    st.markdown(f"<div class='warning-box'>Face neutral Green Score : <strong>{score}</strong> → Air moyen – surveille</div>", True)
-                else:
-                    st.markdown(f"<div class='danger-box'>Pollution Green Score : <strong>{score}</strong> → Air pollué – évite !</div>", True)
+                        st.markdown(f"<div class='success-box'>Trouvé ! {n1} → {n2}</div>", True)
 
-                # ——— MÉTRIQUES AVEC POINT D’INTERROGATION (ILS SONT BIEN LÀ) ———
-                col1, col2 = st.columns(2)
-                col1.metric(
-                    "AQI Paris",
-                    live_aqi,
-                    help="Indice de qualité de l’air en temps réel (source : waqi.info)\n\n"
-                         "• 0–50 Bon (vert) Air très bon\n"
-                         "• 51–100 (jaune) Air modéré\n"
-                         "• 101–150 (orange) Mauvais pour les sensibles\n"
-                         "• >150 (rouge) Air mauvais"
-                )
-                col2.metric(
-                    "Green Score",
-                    score,
-                    help="Score inventé par Trajets Verts Paris – plus il est bas, plus l’air est sain !\n\n"
-                         "• < 0.4 Leaf Air excellent – fonce !\n"
-                         "• 0.4–0.7 Face neutral Air moyen – surveille\n"
-                         "• > 0.7 Pollution Air pollué – évite ce trajet"
-                )
+                        # AQI
+                        if live_aqi <= 50:
+                            st.markdown(f"<div class='success-box'>Leaf AQI Paris : <strong>{live_aqi}</strong> → Air très bon</div>", True)
+                        elif live_aqi <= 100:
+                            st.markdown(f"<div class='warning-box'>Face neutral AQI Paris : <strong>{live_aqi}</strong> → Air modéré</div>", True)
+                        else:
+                            st.markdown(f"<div class='danger-box'>Pollution AQI Paris : <strong>{live_aqi}</strong> → Air mauvais</div>", True)
 
-                # ——— DISTANCE + TEMPS + GRAPHIQUE ———
-                ca, cb = st.columns(2)
-                ca.metric("Distance", f"{km} km")
-                cb.metric("Temps estimé", f"{mins} min en {mode.lower()}")
+                        # Green Score
+                        if score < 0.4:
+                            st.markdown(f"<div class='success-box'>Leaf Green Score : <strong>{score}</strong> → Air excellent – fonce !</div>", True)
+                        elif score <= 0.7:
+                            st.markdown(f"<div class='warning-box'>Face neutral Green Score : <strong>{score}</strong> → Air moyen – surveille</div>", True)
+                        else:
+                            st.markdown(f"<div class='danger-box'>Pollution Green Score : <strong>{score}</strong> → Air pollué – évite !</div>", True)
 
-                st.bar_chart(
-                    {"AQI Paris": [live_aqi], "Green Score ×100": [score*100]},
-                    height=350,
-                    color=["#1b5b00", "#e65100"]
-                )
+                        # Métriques + graphique
+                        ca, cb = st.columns(2)
+                        ca.metric("Distance", f"{km} km")
+                        cb.metric("Temps estimé", f"{mins} min en {mode.lower()}")
+
+                        st.bar_chart({"AQI Paris": [live_aqi], "Green Score ×100": [score*100]}, height=350, color=["#1b5b00", "#e65100"])
+            except Exception as e:
+                st.error(f"Erreur réseau Google : {str(e)}")
 
 # ==================== FOOTER ====================
 st.divider()
 st.markdown("""
 <div style='text-align:center; color:#ffffff; font-size:1.1em; padding:20px;'>
-    © 2026 <strong>Trajets Verts Paris</strong> – Créé par <strong>Raymond Gadji</strong> (AI_Y) Artificial Intelligence  Yedidia<br>
+    © 2026 <strong>Trajets Verts Paris</strong> – Créé par <strong>Raymond Gadji</strong> (AI_Y) Artificial Intelligence Yedidia<br>
     Données : waqi.info • Google Maps • OpenStreetMap • Airparif
 </div>
 """, unsafe_allow_html=True)
