@@ -66,7 +66,7 @@ with c2: arrivee = st.text_input("Arrivée", "Montmartre")
 mode = st.radio("Mode de déplacement", ["Marche", "Vélo"], horizontal=True)
 gmode = "walking" if mode == "Marche" else "bicycling"
 
-if st.button("Prédire trajet Vert", type="primary", use_container_width=True):
+if st.button("Prédire Trajet Vert", type="primary", use_container_width=True):
     with st.spinner("Recherche de la route la plus saine…"):
         p1, n1 = find_place(depart)
         p2, n2 = find_place(arrivee)
