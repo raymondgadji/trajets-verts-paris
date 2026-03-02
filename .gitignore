@@ -3,7 +3,6 @@ __pycache__/
 *.pyc
 .DS_Store
 streamlit_config.toml
-
 # ← ajoute simplement ça en dessous
 .streamlit/
 secrets.toml
